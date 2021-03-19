@@ -1,38 +1,37 @@
 
 module.exports = (sequelize, Sequelize) => {
-    const Session = sequelize.define("sessions", {
+    const Apps = sequelize.define("apps", {
         id: {
             type: Sequelize.BIGINT,
             primaryKey: true,
             autoIncrement: true
         },
-        userId: {
-            type: Sequelize.BIGINT,
+        appName: {
+            type: Sequelize.STRING,
             allowNull: false,
         },
-        userName: {
+        ip: {
             type: Sequelize.STRING,
+            allowNull: false,
             validate: {
-                is: /^[a-z0-9_-]+$/i
+                isIp: true
             },
-            allowNull: false,
         },
-        sessionId: {
+        host: {
             type: Sequelize.STRING,
             allowNull: false,
-        },
-        lastIp: {
-            type: Sequelize.STRING,
             validate: {
-                isIP: true
+                isUrl: true
             },
-            allowNull: false
         },
-
+        needAccountActivation: {
+            type: Sequelize.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
     }, {
         schema: 'accounts'
     });
-
-    return Session;
+    return Apps;
 };
 

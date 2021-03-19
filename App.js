@@ -5,14 +5,31 @@ const appErrorsConfig = require("./environment/app.errors");
 const bodyParser = require('body-parser');
 const jwt = require("jsonwebtoken");
 const express = require('express');
-const cookieParser = require('cookie-parser')
-const usersRouter = require('./routes/User');
+const cookieParser = require('cookie-parser');
+const accountsRouter = require('./routes/Account');
+const organizationRouter = require('./routes/Organization.js');
+const companyRouter = require('./routes/Company.js');
+const departmentRouter = require('./routes/Department.js');
+const departmentSubRouter = require('./routes/DepartmentSubs.js');
 const db = require("./models");
 
 db.sequelize.sync();
 const session = db.sessions;
+const appDb = db.apps;
 const app = express()
 
+/*
+to delete!!!
+ */
+const cors = require('cors')
+const corsOptions = {
+    origin: true,
+    credentials: true
+}
+app.options('*', cors(corsOptions));
+/*
+end to delete!
+ */
 
 
 /**
@@ -25,22 +42,6 @@ const app = express()
  *
  */
 
-
-
-const noSessionTokenNeededRoutes=[
-    {
-        route: "/user",
-        methods:['POST']
-    },
-    {
-        route: "/user/login",
-        methods:['POST']
-    },
-    {
-        route: "/user/activate",
-        methods:['GET']
-    }
-]
 
 /**
  * Pre Access Check
@@ -58,22 +59,29 @@ preAccessCheck = function(req, res, next) {
     }
     //csrf check protection
     var payload
-    if (!(appConfig.skipCSRFProtectionRoutes.indexOf(req.originalUrl) > -1)) {
-        try {
-            payload = jwt.verify(req.body.csrf, appConfig.jwtSecret,);
-        } catch(err) {
-            return appErrorsConfig.getErrorByLang("system","CSRFError",req.body.langId || appConfig.appDefaultLangId,res)
-        }
+    // if (!(appConfig.skipCSRFProtectionRoutes.indexOf(req.originalUrl) > -1)) {
+    /*
+    to delete
+     */
+    // if (req.originalUrl.split('?')[0]=='/user/login_gmail') {
+    //     return next()
+    // }
+    //check csrf 1
+    try {
+        payload = jwt.verify(req.body.csrf, appConfig.jwtSecret,);
+    } catch(err) {
+        return appErrorsConfig.getError("system","CSRFError",res)
     }
+    // }
     //check if route can skip sessionId authentication
     if (appConfig.noSessionTokenNeededRoutesCheck(req.originalUrl,req.method)) {
         return next()
     }
-    //check if route exists with specific method
-    if (!appConfig.routeExistsCheck(req.originalUrl,req.method)) {
-        return res.status(404).send({});
-    }
     req.userName=payload.userName
+    //check csrf 2
+    if (req.userName=="" || payload.appId!=req.body.appId) {
+        return appErrorsConfig.getError("system","CSRFError",res)
+    }
     //get UseId by sessionId
     session.findOne({
         where: {sessionId: req.cookies.sessionToken || "",userName:req.userName || ""},
@@ -87,32 +95,56 @@ preAccessCheck = function(req, res, next) {
         }
     }).catch(err => {
         res.clearCookie("sessionToken");
-        return appErrorsConfig.getSystemErrorByLang(err,req.body.langId || appConfig.appDefaultLangId,res)
+        return appErrorsConfig.getSystemError(err,res)
     });
 
 }
 
-app.use(cookieParser())
+//get all apps details
+appDb.findAll({
+    where: {},
+    attributes: ['id','appName','host','needAccountActivation']
+}).then(function(data) {
+    for (var i = 0; i < data.length; i++) {
+        appConfig.allowedToDirectApiRequestIps.push(data[i].ip)
+    }
+    appConfig.allowedToDirectApiRequestIps.push("::1")
+    appConfig.appHosts=data
+}).catch(err => {
+    process.exit(1)
+});
+
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
     extended: true
 }));
-app.use('/user',preAccessCheck, usersRouter);
+app.use(cookieParser())
+app.use('/account',preAccessCheck, accountsRouter);
+app.use('/organization',preAccessCheck, organizationRouter);
+app.use('/company',preAccessCheck, companyRouter);
+app.use('/department',preAccessCheck, departmentRouter);
+app.use('/department_sub',preAccessCheck, departmentSubRouter);
 
 /**
  * Generate CSRF Token, only premitted Ips can access this
  *
  */
-app.get('/csrf', (req, res) => {
-    if (appConfig.allowedToGetCSRFIps.indexOf(appConfig.getClientIp(req)) > -1) {
+app.post('/csrf', (req, res) => {
+    res.header('Access-Control-Allow-Credentials', appConfig.headers["Access-Control-Allow-Credentials"]);
+    if (appConfig.appHostsCheck((req.get('origin')))) {
+        res.header('Access-Control-Allow-Origin', req.get('origin'));
+    }
+    res.header('Access-Control-Allow-Methods', appConfig.headers["Access-Control-Allow-Methods"]);
+    if (appConfig.allowedToDirectApiRequestIps.indexOf(appConfig.getClientIp(req)) > -1) {
         var token = jwt.sign({
-            userName: req.query.userName
-        }, appConfig.jwtSecret,{ expiresIn: '1h' });
+            userName: req.body.userName,
+            appId: req.body.appId
+        }, appConfig.jwtSecret,{ expiresIn: appConfig.csrfExpireTime });
         return res.status(201).send({token:token});
     } else {
         return res.status(401).send({});
     }
 })
 app.listen(appConfig.appPort, () => {
-    console.log(`${appConfig.appName} App Listening at ${(appConfig.isSSL ? "https" : "http")}://${appConfig.appDomain}:${appConfig.appPort}${appConfig.appUrl}`)
+    console.log(`${appConfig.appName} App Listening at ${(appConfig.isSSL ? "https" : "http")}://${appConfig.appDomain}:${appConfig.appUrl}`)
 })

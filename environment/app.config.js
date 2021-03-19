@@ -1,11 +1,13 @@
+const crypto = require("crypto");
+const bcrypt = require('bcrypt');
 /**
  * General App Config
  */
 module.exports = {
     appName: 'Accounts',
     appDefaultLangId: 12,
-    isSSL: true,
-    appDomain: 'domain.com',
+    isSSL: false,
+    appDomain: 'localhost:82',
     appPort: 82,
     appUrl: '/',
     smtpHost: 'smtp.gmail.com',
@@ -13,60 +15,68 @@ module.exports = {
     smtpIsSSL: true,
     smtpUserName: "zesegal1",
     smtpPassword: "064219569",
-    allowedToGetCSRFIps:['::1'],
-    skipCSRFProtectionRoutes:['/user/ping'],
+    allowedToDirectApiRequestIps:[],
+    facebookAppId:"540366783591701",
+    facebookAppSecret:"241ea2794e0fd04c4e4d0097c6633cfb",
+    gmailAppId:"317085919203-9qkp9ico5i1rbua8c9b7ir2sfrasd589.apps.googleusercontent.com",
+    gmailAppSecret:"togy6Vm72zWwDq_SzhUK6zEQ",
     jwtSecret:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6Inpva3JpIiwiaWF0IjoxNjE1NTM5NTg4LCJleHAiOjE2MTU1NDMxODh9.eKqFetrcIJjJLGmnREfik8IfUmqAI31aUvfuyDovlvI",
+    jswFixedVerify:"eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp2MTU1NDMxODh9.eKqFetrcIJjJLGmnREfik8IfUmqAI31aUvfuyDovlvI",
     /**
      * Session params
      */
     sessionMaxAge: 30 * 24 * 60 * 60 * 1000, // 30 * 24 * 60 * 60 * 1000 -30 days
-    noSessionTokenNeededRoutes: [
-        {
-            route: "/user",
-            methods:['POST']
-        },
-        {
-            route: "/user/login",
-            methods:['POST']
-        },
-        {
-            route: "/user/activate",
-            methods:['GET']
-        }
-    ],
-    noSessionTokenNeededRoutesCheck: function(originalUrl,method) {
-        for (i = 0; i < this.noSessionTokenNeededRoutes.length; i++) {
-            if (this.noSessionTokenNeededRoutes[i].route == originalUrl.split('?')[0].toLowerCase() && this.noSessionTokenNeededRoutes[i].methods.indexOf(method) > -1) {
-                return true;
-            }
-        }
-        return false;
-    },
+    csrfExpireTime: "1h",
     routes: [
         {
-            route: "/user",
-            methods:['POST','GET','DELETE']
+            route: "/account",
+            methods:['POST'],
+            isSessionCheckNeeded:false
         },
         {
-            route: "/user/logout",
-            methods:['POST']
+            route: "/account/ping",
+            methods:['POST'],
+            isSessionCheckNeeded:false
         },
         {
-            route: "/user/login",
-            methods:['POST']
+            route: "/account/logout",
+            methods:['POST'],
+            isSessionCheckNeeded:false
         },
         {
-            route: "/user/ping",
-            methods:['GET']
+            route: "/account/login",
+            methods:['POST'],
+            isSessionCheckNeeded:false
         },
         {
-            route: "/user/activate",
-            methods:['GET']
-        }
+            route: "/account/activate",
+            methods:['GET'],
+            isSessionCheckNeeded:false
+        },
+        {
+            route: "/account/login_facebook",
+            methods:['GET'],
+            isSessionCheckNeeded:false
+        },
+        {
+            route: "/account/login_gmail",
+            methods:['GET'],
+            isSessionCheckNeeded:false
+        },
+        {
+            route: "/account/password/forgot",
+            methods:['POST'],
+            isSessionCheckNeeded:false
+        },
+        {
+            route: "/account/password/forgot_done",
+            methods:['POST'],
+            isSessionCheckNeeded:false
+        },
     ],
-    routeExistsCheck: function(originalUrl,method) {
+    noSessionTokenNeededRoutesCheck: function(originalUrl,method) {
         for (i = 0; i < this.routes.length; i++) {
-            if (this.routes[i].route == originalUrl.split('?')[0].toLowerCase() && this.routes[i].methods.indexOf(method) > -1) {
+            if (this.routes[i].route == originalUrl.split('?')[0].split(':')[0].toLowerCase() && !this.routes[i].isSessionCheckNeeded && this.routes[i].methods.indexOf(method) > -1) {
                 return true;
             }
         }
@@ -75,26 +85,12 @@ module.exports = {
     /**
      * Permitted App Hosts, and activation settings
      */
-    appHosts:[
-        {
-            appId:"app1",
-            appName:"App1",
-            host:'http://localhost',
-            needAccountActivation:false,
-
-        },
-        {
-            appId:"account",
-            appName:"Account",
-            host:undefined, /* Current Host */
-            needAccountActivation:true,
-
-        },
-    ],
+    appHosts:[],
     //check if host origin acceptable
     appHostsCheck: function(host) {
+        console.log(host)
         for (i = 0; i < this.appHosts.length; i++) {
-            if (this.appHosts[i].host == host) {
+            if ((this.appHosts[i].host!="" ? this.appHosts[i].host : undefined) == host) {
                 return true;
             }
         }
@@ -103,7 +99,7 @@ module.exports = {
     //get app name by refereer
     appNameByOrigin: function(host) {
         for (i = 0; i < this.appHosts.length; i++) {
-            if (this.appHosts[i].host == host) {
+            if ((this.appHosts[i].host!="" ? this.appHosts[i].host : undefined) == host) {
                 return this.appHosts[i]
             }
         }
@@ -134,5 +130,10 @@ module.exports = {
             req.socket.remoteAddress ||
             (req.connection.socket ? req.connection.socket.remoteAddress : null);
     },
+    getRandomHash:function() {
+        var passGen = crypto.randomBytes(20).toString('hex');
+        var newHash = bcrypt.hashSync(passGen, bcrypt.genSaltSync(10), null);
+        return newHash
+    }
 
 };

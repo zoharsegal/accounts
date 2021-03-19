@@ -1,38 +1,32 @@
 
 module.exports = (sequelize, Sequelize) => {
-    const Session = sequelize.define("sessions", {
+    const Organizations = sequelize.define("organizations", {
         id: {
             type: Sequelize.BIGINT,
             primaryKey: true,
             autoIncrement: true
         },
-        userId: {
-            type: Sequelize.BIGINT,
-            allowNull: false,
-        },
-        userName: {
-            type: Sequelize.STRING,
-            validate: {
-                is: /^[a-z0-9_-]+$/i
-            },
-            allowNull: false,
-        },
-        sessionId: {
+        organizationName: {
             type: Sequelize.STRING,
             allowNull: false,
         },
-        lastIp: {
+        isDeleted: {
+            type: Sequelize.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
+        address: {
             type: Sequelize.STRING,
-            validate: {
-                isIP: true
-            },
-            allowNull: false
+            allowNull: false,
+        },
+        phone: {
+            type: Sequelize.STRING,
+            allowNull: false,
         },
 
     }, {
         schema: 'accounts'
     });
-
-    return Session;
+    return Organizations;
 };
 

@@ -4,153 +4,105 @@
 module.exports = {
     db:{
         UniqueVaiolation:{
-            lang_12:{
-                errors:[{
-                    "status": "500",
-                    "source": { "pointer": "/docs/errors/db/UniqueVaiolation" },
-                    "title":  "Entity Already Exists",
-                    "detail": ""
-                }]
-            },
-            lang_13:{
-                errors:[{
-                    "status": "500",
-                    "source": { "pointer": "/docs/errors/db/UniqueVaiolation" },
-                    "title":  "יישות כבר קיימת",
-                    "detail": ""
-                }]
-            }
+            errors:[{
+                "status": "500",
+                "source": { "pointer": "/docs/errors/db/UniqueVaiolation" },
+                "title":  "UniqueVaiolation",
+                "detail": ""
+            }]
+        },
+        ValidationError:{
+            errors:[{
+                "status": "500",
+                "source": { "pointer": "/docs/errors/db/ValidationError" },
+                "title":  "ValidationError",
+                "detail": ""
+            }]
+        },
+        ForeinKeyViolation:{
+            errors:[{
+                "status": "500",
+                "source": { "pointer": "/docs/errors/db/ForeinKeyViolation" },
+                "title":  "ForeinKeyViolation",
+                "detail": ""
+            }]
         },
     },
     system:{
         GeneralSystemError:{
-            lang_12:{
-                errors:[{
-                    "status": "500",
-                    "source": { "pointer": "/docs/errors/system/ContactAdmin" },
-                    "title":  "General Error, Please Contact System Administrator",
-                    "detail": ""
-                }]
-            },
-            lang_13:{
-                errors:[{
-                    "status": "500",
-                    "source": { "pointer": "/docs/errors/db/GeneralError" },
-                    "title":  "שגיאה כללית במסד נתונים",
-                    "detail": ""
-                }]
-            }
+            errors:[{
+                "status": "500",
+                "source": { "pointer": "/docs/errors/system/ContactAdmin" },
+                "title":  "GeneralSystemError",
+                "detail": ""
+            }]
         },
         CSRFError:{
-            lang_12:{
-                errors:[{
-                    "status": "403",
-                    "source": { "pointer": "/docs/errors/system/CSRF" },
-                    "title":  "CSRF Protection",
-                    "detail": ""
-                }]
-            },
-            lang_13:{
-                errors:[{
-                    "status": "403",
-                    "source": { "pointer": "/docs/errors/system/CSRF" },
-                    "title":  "הגנת CSRF",
-                    "detail": ""
-                }]
-            }
+            errors:[{
+                "status": "403",
+                "source": { "pointer": "/docs/errors/system/CSRF" },
+                "title":  "CSRFError",
+                "detail": ""
+            }]
         },
     },
     user:{
         NotActivatedError:{
-            lang_12:{
-                errors:[{
-                    "status": "403",
-                    "source": { "pointer": "/docs/errors/user/NotActivated" },
-                    "title":  "Account Not Activated",
-                    "detail": "Please View Your Email To Activate."
-                }]
-            },
-            lang_13:{
-                errors:[{
-                    "status": "403",
-                    "source": { "pointer": "/docs/errors/user/NotActivated" },
-                    "title":  "חשבון לא נופעל",
-                    "detail": "בבקשה גש לחשבונך כדי להפעיל."
-                }]
-            }
+            errors:[{
+                "status": "403",
+                "source": { "pointer": "/docs/errors/user/NotActivated" },
+                "title":  "NotActivatedError",
+                "detail": ""
+            }]
         },
         AlreadyActivated:{
-            lang_12:{
-                errors:[{
-                    "status": "403",
-                    "source": { "pointer": "/docs/errors/user/AlreadyActivated" },
-                    "title":  "Account Already Activated",
-                    "detail": "Account Already Activated."
-                }]
-            },
-            lang_13:{
-                errors:[{
-                    "status": "403",
-                    "source": { "pointer": "/docs/errors/user/AlreadyActivated" },
-                    "title":  "חשבונך הופעל כבר",
-                    "detail": "חשבונך הופעל כבר."
-                }]
-            }
+            errors:[{
+                "status": "403",
+                "source": { "pointer": "/docs/errors/user/AlreadyActivated" },
+                "title":  "AlreadyActivated",
+                "detail": ""
+            }]
         },
         AlreadyDeletedError:{
-            lang_12:{
-                errors:[{
-                    "status": "403",
-                    "source": { "pointer": "/docs/errors/user/AlreadyDeletedError" },
-                    "title":  "Account Deleted Already",
-                    "detail": "Account Deleted Already"
-                }]
-            },
-            lang_13:{
-                errors:[{
-                    "status": "403",
-                    "source": { "pointer": "/docs/errors/user/AlreadyDeletedError" },
-                    "title":  "חשבונך כבר נמחק",
-                    "detail": "חשבונך כבר נמחק"
-                }]
-            }
+            errors:[{
+                "status": "403",
+                "source": { "pointer": "/docs/errors/user/AlreadyDeletedError" },
+                "title":  "AlreadyDeletedError",
+                "detail": ""
+            }]
         },
         AlreadyLoggedIn:{
-            lang_12:{
-                errors:[{
-                    "status": "406",
-                    "source": { "pointer": "/docs/errors/user/AlreadyLoggedIn" },
-                    "title":  "Already Logged In",
-                    "detail": "Already Logged In."
-                }]
-            },
-            lang_13:{
-                errors:[{
-                    "status": "406",
-                    "source": { "pointer": "/docs/errors/user/AlreadyLoggedIn" },
-                    "title":  "הנך מחובר כבר",
-                    "detail": "הנך מחובר כבר."
-                }]
-            }
+            errors:[{
+                "status": "406",
+                "source": { "pointer": "/docs/errors/user/AlreadyLoggedIn" },
+                "title":  "AlreadyLoggedIn",
+                "detail": ""
+            }]
         },
     },
-    getErrorByLang:function(model,errorId,langId,res,err) {
-        let error=this[model][errorId]["lang_" + langId]
+    getError:function(model,errorId,res,err) {
+        let error=this[model][errorId]
         if (err) {
             error.errors[0].detail=String(err)
         }
         return res.status(error.errors[0].status).send(error);
     },
-    getSystemErrorByLang:function(err,langId,res) {
+    getSystemError:function(err,res) {
         switch (err.name) {
             case "SequelizeDatabaseError":
-                return this.getErrorByLang('system','GeneralSystemError',langId,res,err)
+                return this.getError('system','GeneralSystemError',res,err)
                 break;
             case "SequelizeUniqueConstraintError":
-                return this.getErrorByLang('db','UniqueVaiolation',langId,res,err)
+                return this.getError('db','UniqueVaiolation',res,err)
+                break;
+            case "SequelizeValidationError":
+                return this.getError('db','ValidationError',res,err)
+                break;
+            case "SequelizeForeignKeyConstraintError":
+                return this.getError('db','ForeinKeyViolation',res,err)
                 break;
             default:
-                return this.getErrorByLang('system','GeneralSystemError',langId,res,err)
+                return this.getError('system','GeneralSystemError',res,err)
         }
     }
 };

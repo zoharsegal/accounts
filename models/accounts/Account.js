@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 
 module.exports = (sequelize, Sequelize) => {
-    const Account = sequelize.define("accounts_new", {
+    const Account = sequelize.define("accounts", {
         id: {
             type: Sequelize.BIGINT,
             primaryKey: true,
@@ -10,7 +10,7 @@ module.exports = (sequelize, Sequelize) => {
         userName: {
             type: Sequelize.STRING,
             validate: {
-                is: /^[a-z0-9]+$/i
+                is: /^[a-z0-9_-]+$/i
             },
             allowNull: false,
             unique: true
@@ -25,12 +25,20 @@ module.exports = (sequelize, Sequelize) => {
             allowNull: false,
             defaultValue: false
         },
+        banReason: {
+            type: Sequelize.STRING,
+        },
         isDeleted: {
             type: Sequelize.BOOLEAN,
             allowNull: false,
             defaultValue: false
         },
         isActivated: {
+            type: Sequelize.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
+        isAdmin: {
             type: Sequelize.BOOLEAN,
             allowNull: false,
             defaultValue: false
@@ -53,10 +61,16 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: false,
         },
+        newPasswordHash: {
+            type: Sequelize.STRING,
+        },
+        newPasswordHashCreatedAt: {
+            type: Sequelize.DATE,
+        },
         password: {
             type: Sequelize.STRING,
             validate: {
-                is: /^[a-z0-9]+$/i,
+                is: /(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/i,
                 isPasswordConfirmed(value) {
                     if (value != this.password_confirmation) {
                         throw new Error('Password Not Matched');
@@ -83,7 +97,18 @@ module.exports = (sequelize, Sequelize) => {
             },
             allowNull: false
         },
-
+        state: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        address: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
+        phone: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
     }, {
         schema: 'accounts',
         hooks: {
@@ -92,8 +117,16 @@ module.exports = (sequelize, Sequelize) => {
                 const saltRounds = 10;
                 user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10), null);
             },
+            beforeUpdate: (user) => {
+                var password=user.password
+                if (password) {
+                    const saltRounds = 10;
+                    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10), null);
+                }
+            },
         }
     });
+
 
     return Account;
 };
