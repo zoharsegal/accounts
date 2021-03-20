@@ -282,10 +282,11 @@ exports.get = function(req, res) {
  *
  */
 exports.ping = async function(req, res) {
+    console.log("ping")
     if (!req.cookies.sessionToken) {
         return res.status(204).send({})
     }
-    var sessionData=session.findOne({
+    var sessionData=await session.findOne({
         where: {sessionId: req.cookies.sessionToken || null},
         attributes: ['userId']
     })
@@ -302,9 +303,7 @@ exports.ping = async function(req, res) {
             data:{
                 id:user.id,
                 type: "account",
-                attributes: {
-                    "langId": user.langId
-                }
+                attributes: user
             }
         }
         db.sequelize.query('SELECT "permissionName",PR.id' +

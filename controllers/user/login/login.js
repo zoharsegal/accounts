@@ -199,20 +199,21 @@ async function getGoogleUser( code,url ) {
 exports.login = async function(req, res) {
     var returnUrl=req.query.returnUrl
     var whereCluase={
-        userName: req.body.userName || '',
+        userName: req.body.emailuserName || '',
         isBanned: false,
         isDeleted: false
     }
-    if (req.body.email) {
+    console.log(req.body.emailuserName)
+    if (req.body.emailuserName.includes("@")) {
         whereCluase={
-            email: req.body.email || '',
+            email: req.body.emailuserName || '',
             isBanned: false,
             isDeleted: false
         }
     }
     var dataUser=await account.findOne({
         where: whereCluase,
-        attributes: ['id','userName','firstName','lastName','password','isActivated','langId','activateHash']
+        attributes: ['id','userName','email','firstName','lastName','password','isActivated','langId','activateHash']
     })
     if (!dataUser) {
         return res.status(401).send({})
@@ -221,15 +222,14 @@ exports.login = async function(req, res) {
         return appErrorsConfig.getError("user","AlreadyLoggedIn",res)
     }
     const validPassword = await bcrypt.compare(req.body.password || null, dataUser.password);
-
     if (validPassword) {
         if (!appConfig.appHostsActivationCheck(req.get('origin'),dataUser.isActivated)) {
             let originAppDetails=appConfig.appNameByOrigin(req.get('origin'))
             var mailOptions = {
                 from: 'no-replay <no-replay@' + originAppDetails.appName + '>',
-                to: req.body.email || null,
-                subject: appTemplates.getTemplateByLang(originAppDetails.appName.toLowerCase(),"emailActivation",req.body.langId || appConfig.appDefaultLangId,"title").replace("{appName}",originAppDetails.appName),
-                html: appTemplates.getTemplateByLang(originAppDetails.appName.toLowerCase(),"emailActivation",req.body.langId || appConfig.appDefaultLangId,"content").replace('{firstName}',dataUser.firstName).replace('{lastName}',dataUser.lastName).replace('{activationUrl}',originAppDetails.host + "/account/activate?aToken=" + dataUser.activateHash)
+                to: dataUser.email || null,
+                subject: appTemplates.getTemplateByLang(originAppDetails.appName.toLowerCase(),"emailActivation",dataUser.langId || appConfig.appDefaultLangId,"title").replace("{appName}",originAppDetails.appName),
+                html: appTemplates.getTemplateByLang(originAppDetails.appName.toLowerCase(),"emailActivation",dataUser.langId || appConfig.appDefaultLangId,"content").replace('{firstName}',dataUser.firstName).replace('{lastName}',dataUser.lastName).replace('{activationUrl}',originAppDetails.host + "/account/activate?aToken=" + dataUser.activateHash)
             };
 
             transporter.sendMail(mailOptions, function(error, info){
@@ -240,6 +240,7 @@ exports.login = async function(req, res) {
                     return appErrorsConfig.getError("user","NotActivatedError",res)
                 }
             });
+
         } else {
             var hashSessionId = appConfig.getRandomHash()
             const sessiodData = {
@@ -259,7 +260,7 @@ exports.login = async function(req, res) {
                         .then((result) => {
                             let jsonRes={
                                 data:{
-                                    id:data.id,
+                                    id:dataUser.id,
                                     type: "account",
                                     attributes: {
                                         "userName": dataUser.userName,
@@ -283,8 +284,6 @@ exports.login = async function(req, res) {
                     return appErrorsConfig.getSystemError(err,res)
                 });
         }
-
-
     } else {
         return res.status(401).send({})
     }
