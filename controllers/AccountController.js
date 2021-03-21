@@ -8,6 +8,8 @@ const organization = db.organizations;
 const company = db.companies;
 const department = db.departments;
 const department_sub = db.departments_sub;
+const permissions = db.permissions;
+const permission_app_account = db.permission_app_accounts;
 const Op = db.Sequelize.Op;
 const moment = require('moment');
 const bcrypt = require('bcrypt');
@@ -284,7 +286,20 @@ exports.get = function(req, res) {
 exports.ping = async function(req, res) {
     console.log("ping")
     if (!req.cookies.sessionToken) {
-        return res.status(204).send({})
+        let jsonRes={
+            data:{
+                id:null,
+                type: "account",
+                attributes: {
+                    dirFrom:"ltr",
+                    dirTo:"rtl",
+                    alignFrom:"left",
+                    alignTo:"right",
+                    appVersion:1
+                }
+            }
+        }
+        return res.status(200).send(jsonRes)
     }
     var sessionData=await session.findOne({
         where: {sessionId: req.cookies.sessionToken || null},
@@ -297,36 +312,32 @@ exports.ping = async function(req, res) {
     }
     account.findOne({
         where: {id: req.userId,isDeleted: false,isBanned: false},
-        attributes: ['id','userName','firstName','lastName','isActivated','langId']
+        attributes: ['id','userName','firstName','lastName','isActivated','langId'],
+        include: {
+            model: permission_app_account,
+            include: {
+                model: permissions,
+                where: {
+                    appId: req.body.appId || -1
+                },
+                attributes: []
+            }
+        }
     }).then(function(user) {
+        let userTmp=user
+        userTmp.dataValues.dirFrom="rtl";
+        userTmp.dataValues.dirTo="ltr";
+        userTmp.dataValues.alignFrom="rtl";
+        userTmp.dataValues.alignTo="rtl";
+        userTmp.dataValues.appVersion=1;
         let jsonRes={
             data:{
                 id:user.id,
                 type: "account",
-                attributes: user
+                attributes: userTmp
             }
         }
-        db.sequelize.query('SELECT "permissionName",PR.id' +
-                ' FROM accounts.permission_app_accounts PAA JOIN accounts.permissions PR' +
-                ' ON PAA."permissionId"=PR.id' +
-                ' AND PAA."accountId"=:accountId' +
-                ' AND PR."appId"=:appId',
-                {
-                    replacements: { accountId: user.id,appId: req.body.appId || null }
-                }).then(function(data) {
-                var jsonResult=[]
-                for (var i = 0; i < data[0].length; i++) {
-                    jsonResult.push({
-                        id:data[0][i].id,
-                        type:"permission",
-                        attributes:data[0][i],
-                    })
-                }
-                jsonRes.data.included=jsonResult
-                return res.status(200).send(jsonRes)
-            }).catch(err => {
-                return appErrorsConfig.getSystemError(err,res)
-            });
+        return res.status(200).send(jsonRes)
     }).catch(err => {
         return appErrorsConfig.getSystemError(err,res)
     });
@@ -382,12 +393,6 @@ exports.logout = function(req, res) {
         [Op.or]: [
             {
                 sessionId: req.cookies.sessionToken
-            },
-            {
-                createdAt: {
-                    [Op.lte]: moment().add(30, 'days').toDate()
-                },
-                userId:req.userId || -1
             },
         ]
     }})

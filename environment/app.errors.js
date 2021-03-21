@@ -5,7 +5,7 @@ module.exports = {
     db:{
         UniqueVaiolation:{
             errors:[{
-                "status": "500",
+                "status": "202",
                 "source": { "pointer": "/docs/errors/db/UniqueVaiolation" },
                 "title":  "UniqueVaiolation",
                 "detail": ""
@@ -13,17 +13,9 @@ module.exports = {
         },
         ValidationError:{
             errors:[{
-                "status": "500",
+                "status": "422",
                 "source": { "pointer": "/docs/errors/db/ValidationError" },
                 "title":  "ValidationError",
-                "detail": ""
-            }]
-        },
-        ForeinKeyViolation:{
-            errors:[{
-                "status": "500",
-                "source": { "pointer": "/docs/errors/db/ForeinKeyViolation" },
-                "title":  "ForeinKeyViolation",
                 "detail": ""
             }]
         },
@@ -97,9 +89,6 @@ module.exports = {
                 break;
             case "SequelizeValidationError":
                 return this.getError('db','ValidationError',res,err)
-                break;
-            case "SequelizeForeignKeyConstraintError":
-                return this.getError('db','ForeinKeyViolation',res,err)
                 break;
             default:
                 return this.getError('system','GeneralSystemError',res,err)

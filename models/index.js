@@ -41,9 +41,25 @@ db.accounts.belongsTo(db.companies,{ constraints: false });
 db.accounts.belongsTo(db.departments,{ constraints: false });
 db.accounts.belongsTo(db.departments_sub,{ constraints: false });
 db.accounts.belongsTo(db.apps,{ constraints: false });
-db.accounts.hasOne(db.accounts, { foreignKey: 'affiliateId',constraints: false });
-db.accounts.hasOne(db.accounts, { foreignKey: 'ownerAccountId',constraints: false });
+db.accounts.belongsTo(db.accounts, { foreignKey: 'affiliateId',constraints: false });
+db.accounts.belongsTo(db.accounts, { foreignKey: 'ownerAccountId',constraints: false });
 db.accounts.belongsTo(db.countries,{ constraints: false });
+db.accounts.hasMany(db.permission_app_accounts, {constraints: false});
+
+
+/*
+ * Session Foreigs Kes
+ */
+db.sessions.belongsTo(db.accounts, {
+    foreignKey: 'userId',
+    allowNull: false,
+    constraints: false
+});
+
+/*
+ * Apps Foreigs Kes
+ */
+db.apps.hasMany(db.permissions, {constraints: false});
 
 /*
  * Permissions Foreigs Kes
@@ -54,6 +70,8 @@ db.permissions.belongsTo(db.apps, {
     },
     constraints: false
 });
+db.permissions.hasMany(db.permission_app_accounts, {constraints: false});
+
 
 /*
  * Permission App Accounts Foreigs Kes

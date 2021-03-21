@@ -266,6 +266,12 @@ exports.login = async function(req, res) {
                                         "userName": dataUser.userName,
                                         "firstName": dataUser.firstName,
                                         "lastName": dataUser.lastName,
+                                        "langId": 12,
+                                        "dirFrom": "rtl",
+                                        "dirTo": "ltr",
+                                        "alignFrom": "right",
+                                        "alignTo": "left",
+                                        "appVersion": 1,
                                     }
                                 },
                                 links:[{

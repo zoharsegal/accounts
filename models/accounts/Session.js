@@ -6,10 +6,6 @@ module.exports = (sequelize, Sequelize) => {
             primaryKey: true,
             autoIncrement: true
         },
-        userId: {
-            type: Sequelize.BIGINT,
-            allowNull: false,
-        },
         userName: {
             type: Sequelize.STRING,
             validate: {
