@@ -13,15 +13,15 @@ module.exports = {
     smtpHost: 'smtp.gmail.com',
     smtpPort: 465,
     smtpIsSSL: true,
-    smtpUserName: "zesegal1",
-    smtpPassword: "064219569",
+    smtpUserName: "xxxxx",
+    smtpPassword: "xxxxxxx",
     allowedToDirectApiRequestIps:[],
-    facebookAppId:"540366783591701",
-    facebookAppSecret:"241ea2794e0fd04c4e4d0097c6633cfb",
-    gmailAppId:"317085919203-9qkp9ico5i1rbua8c9b7ir2sfrasd589.apps.googleusercontent.com",
-    gmailAppSecret:"togy6Vm72zWwDq_SzhUK6zEQ",
-    jwtSecret:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6Inpva3JpIiwiaWF0IjoxNjE1NTM5NTg4LCJleHAiOjE2MTU1NDMxODh9.eKqFetrcIJjJLGmnREfik8IfUmqAI31aUvfuyDovlvI",
-    jswFixedVerify:"eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp2MTU1NDMxODh9.eKqFetrcIJjJLGmnREfik8IfUmqAI31aUvfuyDovlvI",
+    facebookAppId:"xxxxxxxxxxxx",
+    facebookAppSecret:"xxxxxxxxx",
+    gmailAppId:"xxxxx",
+    gmailAppSecret:"xxxxxxxx",
+    jwtSecret:"xxxxxxxxx",
+    jswFixedVerify:"xxxxxxxxxxx",
     /**
      * Session params
      */
